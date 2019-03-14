@@ -100,24 +100,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mSearchButton = findViewById(R.id.search_button_id);
         mSearchButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                if (mMap != null) {
-                    // Make call to server to get nearby clips then call parseResponse()
-                    try {
-                        JSONArray array = new JSONArray();
-                        JSONObject obj = new JSONObject().put("clip_id", "http://1.bp.blogspot.com/-hNC-oT6f-fY/TeXxO26yjvI/AAAAAAAAAOY/qfkOqdKkBi8/s1600/platon-photographer-putin-man-of-the-year-portrait.jpg");
-                        obj.put("latitude", 33.023586);
-                        obj.put("longitude", -117.088658);
-                        JSONObject obj2 = new JSONObject().put("clip_id", "2");
-                        obj2.put("latitude", 33.022508);
-                        obj2.put("longitude", -117.070333);
-                        array.put(obj);
-                        array.put(obj2);
-                        parseResponse(array);
-                    } catch (JSONException e) {
-
-                    }
-                }
-
+                // Make call to server to get nearby clips then call parseResponse()
+                JSONArray response = requestPhotos(mMap.getCameraPosition().target);
+                parseResponse(response);
             }
         });
 
@@ -167,6 +152,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .execute(url);
     }
 
+    public JSONArray requestPhotos(LatLng location) {
+        try {
+            JSONArray array = new JSONArray();
+            JSONObject obj = new JSONObject().put("clip_id", "http://1.bp.blogspot.com/-hNC-oT6f-fY/TeXxO26yjvI/AAAAAAAAAOY/qfkOqdKkBi8/s1600/platon-photographer-putin-man-of-the-year-portrait.jpg");
+            obj.put("latitude", 33.023586);
+            obj.put("longitude", -117.088658);
+            JSONObject obj2 = new JSONObject().put("clip_id", "2");
+            obj2.put("latitude", 33.022508);
+            obj2.put("longitude", -117.070333);
+            array.put(obj);
+            array.put(obj2);
+            return array;
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
     /**
      * Parses the response from the Server into clip objects and adds markers to the map
      * @param results
@@ -175,7 +177,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         for (int i = 0; i < results.length(); i++) {
             try {
                 Clip clip = new Clip(results.getJSONObject(i));
-                if (isVisibleOnMap(clip.getPosition())) {
+                if (mMap != null && isVisibleOnMap(clip.getPosition())) {
                     Marker mMarker = mMap.addMarker(new MarkerOptions().position(clip.getPosition()).title(clip.getClipId())
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
                     mMarker.setTag(clip);

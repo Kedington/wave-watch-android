@@ -66,7 +66,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private ImageView hiddenImage;
     private Button mSearchButton;
-    private Button mVideoButton;
+    private Button mPhotoButton;
 
     // Photo Variables
     static final int REQUEST_TAKE_PHOTO = 1;
@@ -77,20 +77,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        // Construct a FusedLocationProvider
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // Set up the image view for displaying waves
         hiddenImage = (ImageView) findViewById(R.id.hidden_image);
         hiddenImage.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 hiddenImage.setVisibility(View.INVISIBLE);
-                // your code here
             }
         });
 
-        // Construct a FusedLocationProvider
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
-        // Set up Button listener to switch to taking a video
-        mVideoButton = findViewById(R.id.video_button_id);
-        mVideoButton.setOnClickListener(new View.OnClickListener() {
+        // Set up Button listener to switch to taking a photo
+        mPhotoButton = findViewById(R.id.photo_button_id);
+        mPhotoButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 dispatchTakePictureIntent();
             }
@@ -100,7 +100,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mSearchButton = findViewById(R.id.search_button_id);
         mSearchButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Make call to server to get nearby clips then call parseResponse()
+                // Make call to server to get nearby photos then call parseResponse()
                 JSONArray response = requestPhotos(mMap.getCameraPosition().target);
                 parseResponse(response);
             }
@@ -141,9 +141,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        Clip clip = (Clip) marker.getTag();
+        Photo photo = (Photo) marker.getTag();
         marker.setVisible(false);
-        displayImage(clip.getClipId());
+        displayImage(photo.getPhotoId());
         return false;
     }
 
@@ -155,10 +155,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public JSONArray requestPhotos(LatLng location) {
         try {
             JSONArray array = new JSONArray();
-            JSONObject obj = new JSONObject().put("clip_id", "http://1.bp.blogspot.com/-hNC-oT6f-fY/TeXxO26yjvI/AAAAAAAAAOY/qfkOqdKkBi8/s1600/platon-photographer-putin-man-of-the-year-portrait.jpg");
+            JSONObject obj = new JSONObject().put("photo_id", "http://1.bp.blogspot.com/-hNC-oT6f-fY/TeXxO26yjvI/AAAAAAAAAOY/qfkOqdKkBi8/s1600/platon-photographer-putin-man-of-the-year-portrait.jpg");
             obj.put("latitude", 33.023586);
             obj.put("longitude", -117.088658);
-            JSONObject obj2 = new JSONObject().put("clip_id", "2");
+            JSONObject obj2 = new JSONObject().put("photo_id", "2");
             obj2.put("latitude", 33.022508);
             obj2.put("longitude", -117.070333);
             array.put(obj);
@@ -170,17 +170,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * Parses the response from the Server into clip objects and adds markers to the map
+     * Parses the response from the Server into photo objects and adds markers to the map
      * @param results
      */
     public void parseResponse(JSONArray results) {
         for (int i = 0; i < results.length(); i++) {
             try {
-                Clip clip = new Clip(results.getJSONObject(i));
-                if (mMap != null && isVisibleOnMap(clip.getPosition())) {
-                    Marker mMarker = mMap.addMarker(new MarkerOptions().position(clip.getPosition()).title(clip.getClipId())
+                Photo photo = new Photo(results.getJSONObject(i));
+                if (mMap != null && isVisibleOnMap(photo.getPosition())) {
+                    Marker mMarker = mMap.addMarker(new MarkerOptions().position(photo.getPosition()).title(photo.getPhotoId())
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                    mMarker.setTag(clip);
+                    mMarker.setTag(photo);
                 }
             } catch (JSONException e) {
                 Log.e(TAG, "Error parsing Json");
